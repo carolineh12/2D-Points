@@ -1,10 +1,9 @@
 ########################################################################################################
-# 2D Points
+# Chaos Game
 # Liz Denson & Caroline Holland
-# Last modified on 2023-02-28
+# Last modified on 2023-03-23
 #
-# An object-oriented program that utilizes a GUI and includes a 2D Point class instantiating randomly
-# generated points within a specified coordinate range, and plotting those points on a canvas.
+# An object-oriented program that utilizes a GUI to create the Chaos Game.
 ########################################################################################################
 
 # Import libraries
@@ -39,17 +38,17 @@ class Point:
         # Mutator method for the y component
         self._y = float(value)
         
-    # Call x and y getters and setters through the property function
+    # Calls x and y getters and setters through the property function
     x = property(get_x, set_x)
     y = property(get_y, set_y)
     
-    # Calculate the distance between two points and takes another point as an argument
+    # Calculates the distance between two points and takes another point as an argument
     def dist(self, other_point):
-        # Distance formula to calculate the distance between the two points
+        # Distance formula that calculates the distance between the two points
         return math.sqrt((self._x - other_point.get_x()) ** 2 +
                          (self._y - other_point.get_y()) ** 2)
 
-    # Calculate the midpoint between two points and takes another point as an argument
+    # Calculates the midpoint between two points and takes another point as an argument
     def midpt(self, other_point):
         # Calculates the average of the x and y components of the two points
         mid_x = (self._x + other_point.get_x()) / 2.0
@@ -57,70 +56,91 @@ class Point:
         # Returns a new point instance with the midpoint coordinates
         return Point(mid_x, mid_y)
 
-    # Magic method to provide a string representation of the point instance
+    # Magic method that provides a string representation of the point instance
     def __str__(self):
         # Returns a string in the format (x,y)
         return "({}, {})".format(self._x, self._y)
 
-# CoordinateSystem class varaibles
-# Class variable that sets the width to 800
-WIDTH = 800
-# Class variable that sets the height to 800
-HEIGHT = 800
-# Class variable for the possible colors of the plotted points
-POINT_COLORS = ['black', 'red', 'green', 'blue', 'cyan', 'yellow', 'magenta']
-# Class variable for the radius of the plotted points
+# Constants for the ChaosGame class
+# The dimensions of the canvas and the number of points to be plotted
+WIDTH = 600
+HEIGHT = 520
+NUM_POINTS = 50000
+# The minimum and maximum values for X and Y coordinates
+MIN_X = 0
+MAX_X = WIDTH - 1
+MIN_Y = 0
+MAX_Y = HEIGHT - 1
+# The midpoint values for X and Y coordinates
+MID_X = (MIN_X + MAX_X) / 2
+MID_Y = (MIN_Y + MAX_Y) / 2
+# The colors and radius sizes for the points and vertices
+POINT_COLOR = ['black']
+VERTEX_COLOR = ['red']
 POINT_RADIUS = 0
-# Class variable that sets the number of points to 5000
-NUM_POINTS = 5000
+VERTEX_RADIUS = 3
 
-# The CoordinateSystem class inheriting from Tkinter's Canvas class
-class CoordinateSystem(Canvas):
-    # Constructor for the CoordinateSystem class
+# ChaosGame class
+class ChaosGame(Canvas):
+    # Constructor for the ChaosGame class
     def __init__(self, master, width=WIDTH, height=HEIGHT, num_points=NUM_POINTS):
-        # Initialize a canvas object with the width, height, and white background
+        # Initializes a canvas with the width, height, and a white background
         super().__init__(master, width=width, height=height, bg='white')
-        # Pack the canvas object to fill the entire Tkinter window
+        # Pack the canvas to fill the entire Tkinter window
         self.pack(fill=BOTH, expand=True)
         # Instance variable for the number of points to plot
         self.num_points = num_points
 
-    # Method to plot a single point on the canvas
-    def plot(self, p):
-        # Get the x and y coordinates of the point
+    # Method to plot a single point with specified color and radius
+    def plot(self, p, color, radius):
+        # Get the X and Y coordinates of a point and plot them
         x = p.get_x()
         y = p.get_y()
-        
-        # Pick random color to fill point
-        color = choice(POINT_COLORS)
+        self.create_oval(x, y, x + radius, y + radius, outline=color, fill=color)
 
-        # Create an oval with a radius of POINT_RADIUS centered
-        # On the point's x and y coordinates with the specified color
-        self.create_oval(x, y, x + POINT_RADIUS, y + POINT_RADIUS, outline=color, fill=color)
+    # Method to plot multiple midpoints
+    def plotMidpoints(self, vertices, max_points):
+        count = 1
+        # Choose a random vertex to be the starting point
+        m = choice(vertices)
+        # Continue plotting midpoints until the maximum number of points has been reached
+        while count < max_points:
+            v = choice(vertices)
+            m_new = m.midpt(v)
+            self.plot(m_new, POINT_COLOR, POINT_RADIUS)
+            m = m_new
+            count += 1
 
-    # Method to plot multiple random points on the canvas
-    def plotPoints(self, n):
-        # Plot n random points on the canvas within the specified width and height
-        for i in range(n):
-            x = randint(0, WIDTH - 1)
-            y = randint(0, HEIGHT - 1)
-            p = Point(x, y)
-            self.plot(p)
-    
+    # Method to plot the vertices of the triangle
+    def plotTriangle(self, vertices):
+        for vertex in vertices:
+            self.plot(vertex, VERTEX_COLOR, VERTEX_RADIUS)
 
 ###############
 # MAIN PROGRAM
 ###############
 
-# Create a Tkinter window
+# Function to create an equilateral triangle given a side length and center coordinates
+def sierpinskiTriangle(base_length, x_center, y_center):
+    height = base_length * (math.sqrt(3) / 2)
+    v1 = Point(x_center, y_center - (height / 2))
+    v2 = Point(x_center - (base_length / 2), y_center + (height / 2))
+    v3 = Point(x_center + (base_length / 2), y_center + (height / 2))
+    return [v1, v2, v3]
+
+# Creates the main application window
 window = Tk()
-# Set the geometry of the window to the specified WIDTH and HEIGHT
+# Sets the size of the window
 window.geometry("{}x{}".format(WIDTH, HEIGHT))
-# Set the title of the window
-window.title("Points can be fun!")
-# Create an instance of the CoordinateSystem class on the Tkinter window
-p = CoordinateSystem(window)
-# Call the plotPoints() method to plot NUM_POINTS random points on the canvas
-p.plotPoints(NUM_POINTS)
-# Start the Tkinter event loop
+# Sets the title of the window
+window.title("Chaos Game!")
+# Creates an instance of the ChaosGame class
+p = ChaosGame(window)
+# Generates the vertices of the equilateral triangle
+triangle_vertices = sierpinskiTriangle(584, MID_X, MID_Y)
+# Plots the vertices of the triangle
+p.plotTriangle(triangle_vertices)
+# Plots the midpoints
+p.plotMidpoints(triangle_vertices, NUM_POINTS)
+# Runs the main event loop
 window.mainloop()
