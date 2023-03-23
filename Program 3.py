@@ -91,11 +91,11 @@ class CoordinateSystem(Canvas):
         x = p.get_x()
         y = p.get_y()
         
-        #Pick random color to fill point
+        # Pick random color to fill point
         color = choice(POINT_COLORS)
 
         # Create an oval with a radius of POINT_RADIUS centered
-        # on the point's x and y coordinates with the specified color
+        # On the point's x and y coordinates with the specified color
         self.create_oval(x, y, x + POINT_RADIUS, y + POINT_RADIUS, outline=color, fill=color)
 
     # Method to plot multiple random points on the canvas
